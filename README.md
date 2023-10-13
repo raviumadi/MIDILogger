@@ -37,7 +37,12 @@ if (note_events_onoff(ord(j))==1)
 
 You could use `timidity` or any software synthesiser to generate `.wav` files of your composition. 
 
+## User Notes
+
+When you run this script, a figure window pops, from where the keypress commands are read in. Press `s` to start recording, and `x` to stop. The .mid files are generated with `timestamp-username.mid` format and stored in the `rec/` folder. Change the `recpath` in the script if you wish to store the files elsewhere.
+
 ## Limitations
+
 In the current version, the control commands are ignored. Please send a pull-request if you would like to take it from here.
 
 Happy Recording!

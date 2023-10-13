@@ -17,6 +17,9 @@ availableDevices = mididevinfo;
 midiInputID = availableDevices.input(1).ID;
 
 % Define path for storing midi files
+if ~exist('rec', 'dir')
+    mkdir('rec')
+end
 recpath = "rec";
 
 % Get user name. If not needed, also remove from midiFileName, see below
