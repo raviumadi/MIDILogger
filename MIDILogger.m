@@ -1,72 +1,106 @@
-clear all,
-cls
+% MidiRecorder
+% Record .mid files via MATLAB from digital keyboards. Built on Ken
+% Schutte's matlab-midi: https://kenschutte.com/midi/
+% Author: Ravi Umadi, 2023
+
 % Parameters
-noteOn = 144:144+16;
+noteOn = 144:144+16; % See midi specs
 noteOff = 127:127+16;
+
 % Define the MIDI input device ID
 availableDevices = mididevinfo;
-% midiInputID = 0; % Change this to the appropriate MIDI device ID
-
 midiInputID = availableDevices.input(1).ID;
+recpath = "rec";
+
+% Get user name
+username = [];
+while isempty(username)
+    username = input("Enter the name of the player:     ", 's');
+end
 
 % Creare a midi device
 midiIn = mididevice(midiInputID);
 
-% Define the MIDI file name
-midiFileName = 'output.mid';
+% Define the MIDI file name (seems unused, but included it anyway)
+midiFileName = fullfile(recpath, strcat(string(datetime('now',...
+    'format', 'uuuu-MM-dd-HH-mm-ss-')), username, '.mid'));
 
 % Define midi matrix
 MidiMatrix = zeros(1,6);
 
-tic,
-try
-    % Define a loop to continuously record MIDI events
-    while toc <=10
-        % Receive MIDI messages
-        midiMessages = midireceive(midiIn);
+figure; % Create a figure to capture the key press
 
-        % Check if there are new messages
-        if ~isempty(midiMessages)
-            % Loop through the received MIDI messages
-            for i = 1:numel(midiMessages)
-                midiMessage = midiMessages(i);
+% Initialize flag to stop loop
+global stopLoop;
+stopLoop = false;
 
-                % Check note on/off
-                if ismember(midiMessage.MsgBytes(1), noteOn)
-                    entryCol = 5;
-                elseif ismember(midiMessage.MsgBytes(1), noteOff)
-                    entryCol = 6;
-                end
-                % Add to the matrix
-                MidiMatrix(end+1,[1:4, entryCol]) = [1, midiMessage.Channel,...
-                    double(midiMessage.MsgBytes(2)), double(midiMessage.MsgBytes(3)), midiMessage.Timestamp];         
-            end
-        end
+% Set the key press function
+set(gcf, 'KeyPressFcn', @(src, event) checkKeyPress(event));
 
-        % Optional: Add a delay to control the rate of recording
-        pause(0.1); % Adjust the delay as needed
+% Prompt begin
+disp("Press 's' to start recording")
+
+% Wait for 's' key to start the loop
+while true
+    waitforbuttonpress;
+    if gcf().CurrentCharacter == 's'
+        break;
     end
-catch exception
-    % Close the MIDI input object and write the MIDI file in case of an error
-    release(midiIn);
-    MidiMatrix(1,:) = [];
-    midiFileStructure = matrix2midi(MidiMatrix);
-    if exist('midiFileStructure', 'var')
-        writemidi(midiFileStructure, midiFileName);
-    end
-    rethrow(exception);
 end
 
+disp("Recording started... Press 'x' to stop.");
 
+% Loop until 'x' key is pressed
+while ~stopLoop
+    % Receive MIDI messages
+    midiMessages = midireceive(midiIn);
 
+    % Check if there are new messages
+    if ~isempty(midiMessages)
+        % Loop through the received MIDI messages
+        for i = 1:numel(midiMessages)
+            midiMessage = midiMessages(i);
+
+            % Check note on/off
+            if ismember(midiMessage.MsgBytes(1), noteOn)
+                entryCol = 5;
+            elseif ismember(midiMessage.MsgBytes(1), noteOff)
+                entryCol = 6;
+            else
+                continue; % ignore control commands
+            end
+            % Add to the matrix. See examples in matlab-midi
+            MidiMatrix(end+1,[1:4, entryCol]) = [1, midiMessage.Channel,...
+                double(midiMessage.MsgBytes(2)), ...
+                double(midiMessage.MsgBytes(3)), midiMessage.Timestamp];
+        end
+    end
+
+    % Optional: Add a delay to control the rate of recording
+    pause(0.1); % Adjust the delay as needed
+end
+
+% Close the figure
+close(gcf);
+
+% Process notes and write out midi file
 MidiMatrix(1,:) = [];
 midiFileStructure = matrix2midi(MidiMatrix);
 if exist('midiFileStructure', 'var')
     writemidi(midiFileStructure, midiFileName);
 end
 
+clear midiIn;
 
+% % Process midi file in system
+% ! timidity -o output.wav -Ow output.mid
+% ! play output.wav
 
-
-
-
+% Function to check key press
+function checkKeyPress(event)
+global stopLoop;
+if strcmp(event.Key, 'x')
+    stopLoop = true;
+    disp("Recording Stopped");
+end
+end
