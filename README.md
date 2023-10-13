@@ -4,9 +4,7 @@ However, there is no in-built function for recording midi files in MATLAB&reg; T
 
 Meanwhile, I needed a solution. After digging around, I landed upon [Ken Schutte's 14-year-old work](https://kenschutte.com/midi/). It looked good enough for quick modification for passing incoming midi messages to a matrix and tweaking the `matrix2midi()` function a bit to make it work.
 
-1. Get Ken Schutte's [Matlab-midi](https://github.com/kts/matlab-midi) 
-
-2. **Scroll down for the GitHub Repo of MIDILogger for the most updated version.**
+Get Ken Schutte's [Matlab-midi](https://github.com/kts/matlab-midi) 
 
 Here are the changes to make in the function `matrix2midi()`
 
@@ -36,3 +34,10 @@ if (note_events_onoff(ord(j))==1)
 %             midi.track(i).messages(msgCtr).data = [trM(n,3); 0];
         end
 ```
+
+You could use `timidity` or any software synthesiser to generate `.wav` files of your composition. 
+
+## Limitations
+In the current version, the control commands are ignored. Please send a pull-request if you would like to take it from here.
+
+Happy Recording!
