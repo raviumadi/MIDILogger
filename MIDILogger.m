@@ -1,18 +1,25 @@
-% MidiRecorder
-% Record .mid files via MATLAB from digital keyboards. Built on Ken
+% MidiLogger
+% Record .mid files via MATLAB from digital music instruments. Built on Ken
 % Schutte's matlab-midi: https://kenschutte.com/midi/
+% Also see MATLAB Midi devices documentation:
+% https://www.mathworks.com/help/audio/ug/midi-device-interface.html
 % Author: Ravi Umadi, 2023
 
 % Parameters
-noteOn = 144:144+16; % See midi specs
+noteOn = 144:144+16; % See midi specs 
+% https://midi.org/specifications-old/category/reference-tables
 noteOff = 127:127+16;
 
 % Define the MIDI input device ID
 availableDevices = mididevinfo;
+
+% Edit the line below for slecting your device
 midiInputID = availableDevices.input(1).ID;
+
+% Define path for storing midi files
 recpath = "rec";
 
-% Get user name
+% Get user name. If not needed, also remove from midiFileName, see below
 username = [];
 while isempty(username)
     username = input("Enter the name of the player:     ", 's');
@@ -69,6 +76,7 @@ while ~stopLoop
             else
                 continue; % ignore control commands
             end
+            
             % Add to the matrix. See examples in matlab-midi
             MidiMatrix(end+1,[1:4, entryCol]) = [1, midiMessage.Channel,...
                 double(midiMessage.MsgBytes(2)), ...
