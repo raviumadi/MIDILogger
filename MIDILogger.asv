@@ -2,7 +2,7 @@ clear all,
 cls
 % Parameters
 noteOn = 144:144+16;
-noteOff = 127:127+16;
+noteOff = 128:128+16;
 % Define the MIDI input device ID
 availableDevices = mididevinfo;
 % midiInputID = 0; % Change this to the appropriate MIDI device ID
@@ -18,10 +18,10 @@ midiFileName = 'output.mid';
 % Define midi matrix
 MidiMatrix = zeros(1,6);
 
-tic,
+
 try
     % Define a loop to continuously record MIDI events
-    while toc <=10
+    while true
         % Receive MIDI messages
         midiMessages = midireceive(midiIn);
 
@@ -39,7 +39,11 @@ try
                 end
                 % Add to the matrix
                 MidiMatrix(end+1,[1:4, entryCol]) = [1, midiMessage.Channel,...
-                    double(midiMessage.MsgBytes(2)), double(midiMessage.MsgBytes(3)), midiMessage.Timestamp];         
+                    midiMessage.Note, midiMessage.MsgBytes(3), midiMessage.Timestamp]
+                MidiMatrix(end+1,2) = ;
+                MidiMatrix(end+1,3) = ;
+                MidiMatrix(end+1,4) = ;
+                MidiMatrix(end+1,entryCol) = ;
             end
         end
 
@@ -59,11 +63,7 @@ end
 
 
 
-MidiMatrix(1,:) = [];
-midiFileStructure = matrix2midi(MidiMatrix);
-if exist('midiFileStructure', 'var')
-    writemidi(midiFileStructure, midiFileName);
-end
+
 
 
 
